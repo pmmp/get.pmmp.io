@@ -303,7 +303,15 @@ else
 		set -e
 		echo "[3/3] No prebuilt PHP found, compiling PHP automatically. This might take a while."
 		echo
-		exec "./compile.sh"
+		logical_cpu_count=$([ "$(uname -s)" == "Darwin" ] && sysctl -n hw.logicalcpu_max || nproc --all) #Get available CPUs to pass to compile.sh and speed up compile
+		if [ $logical_cpu_count -gt 0 ]; then
+			echo "Starting $logical_cpu_count thread compile"
+			compile_command="./compile.sh -j $logical_cpu_count"
+			exec $compile_command
+		else
+			echo "Starting single thread compile"
+			exec "./compile.sh"
+		fi
 	fi
 fi
 
