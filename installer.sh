@@ -120,6 +120,7 @@ if [[ "$BUILD_URL" != "" && "$CHANNEL" == "custom" ]]; then
 	VERSION_DOWNLOAD="$BUILD_URL"
 	MCPE_VERSION="unknown"
 	PHP_VERSION="unknown"
+	PM_VERSION_MAJOR="unknown"
 else
 	echo "[*] Retrieving latest build data for channel \"$CHANNEL\""
 
@@ -137,6 +138,7 @@ else
 		PHP_VERSION=$(parse_json "$VERSION_DATA" php_version)
 		VERSION_DATE=$(parse_json "$VERSION_DATA" date)
 		VERSION_DOWNLOAD=$(parse_json "$VERSION_DATA" download_url)
+		PM_VERSION_MAJOR=$(echo $BASE_VERSION | cut -d "." -f1)
 
 		if [ "$(uname -s)" == "Darwin" ]; then
 			VERSION_DATE_STRING=$(date -r $VERSION_DATE)
@@ -272,7 +274,7 @@ else
 		fi
 
 		echo -n "... downloading $PHP_VERSION ..."
-		download_file "https://jenkins.pmmp.io/job/PHP-$PHP_VERSION-Aggregate/lastSuccessfulBuild/artifact/PHP-$PHP_VERSION-$PLATFORM.tar.gz" | tar -zx > /dev/null 2>&1
+		download_file "https://jenkins.pmmp.io/job/PHP-$PHP_VERSION-Aggregate/lastSuccessfulBuild/artifact/PHP-$PHP_VERSION-$PLATFORM-PM$PM_VERSION_MAJOR.tar.gz" | tar -zx > /dev/null 2>&1
 
 		chmod +x ./bin/php7/bin/*
 		if [ -f ./bin/composer ]; then
@@ -306,11 +308,11 @@ else
 		logical_cpu_count=$([ "$(uname -s)" == "Darwin" ] && sysctl -n hw.logicalcpu_max || nproc --all) #Get available CPUs to pass to compile.sh and speed up compile
 		if [ $logical_cpu_count -gt 0 ]; then
 			echo "Starting $logical_cpu_count thread compile"
-			compile_command="./compile.sh -j $logical_cpu_count"
+			compile_command="./compile.sh -j $logical_cpu_count -P $PM_VERSION_MAJOR"
 			exec $compile_command
 		else
 			echo "Starting single thread compile"
-			exec "./compile.sh"
+			exec "./compile.sh -P $PM_VERSION_MAJOR"
 		fi
 	fi
 fi
