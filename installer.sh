@@ -1,7 +1,6 @@
 #!/bin/bash
 
 CHANNEL="stable"
-BRANCH="stable"
 NAME="PocketMine-MP"
 BUILD_URL=""
 
@@ -223,14 +222,10 @@ if ! [ -s "$NAME.phar" ] || [ "$(head -n 1 $NAME.phar)" == '<!DOCTYPE html>' ]; 
 	echo "[!] Couldn't download $NAME automatically from $VERSION_DOWNLOAD"
 	exit 1
 else
-	if [ "$CHANNEL" == "soft" ]; then
-		download_file "https://raw.githubusercontent.com/PocketMine/PocketMine-Soft/${BRANCH}/resources/start.sh" > start.sh
-	else
-		download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BRANCH}/start.sh" > start.sh
-	fi
-	download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BRANCH}/LICENSE" > LICENSE
-	download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BRANCH}/README.md" > README.md
-	download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BRANCH}/CONTRIBUTING.md" > CONTRIBUTING.md
+	download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BASE_VERSION}/start.sh" > start.sh
+	download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BASE_VERSION}/LICENSE" > LICENSE
+	download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BASE_VERSION}/README.md" > README.md
+	download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BASE_VERSION}/CONTRIBUTING.md" > CONTRIBUTING.md
 	download_file "https://raw.githubusercontent.com/pmmp/PHP-Binaries/php/${PHP_VERSION}/compile.sh" > compile.sh
 fi
 
