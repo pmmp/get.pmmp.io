@@ -231,7 +231,7 @@ else
 	download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BRANCH}/LICENSE" > LICENSE
 	download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BRANCH}/README.md" > README.md
 	download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BRANCH}/CONTRIBUTING.md" > CONTRIBUTING.md
-	download_file "https://raw.githubusercontent.com/pmmp/php-build-scripts/${BRANCH}/compile.sh" > compile.sh
+	download_file "https://raw.githubusercontent.com/pmmp/PHP-Binaries/php/${PHP_VERSION}/compile.sh" > compile.sh
 fi
 
 chmod +x compile.sh
