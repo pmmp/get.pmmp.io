@@ -292,6 +292,7 @@ else
 			alldone=yes
 		else
 			echo " downloaded PHP build doesn't work on this platform!"
+			rm -rf bin #make sure this doesn't leave a dead binary in case compile.sh fails
 		fi
 
 		break
