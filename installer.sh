@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 CHANNEL="stable"
 NAME="PocketMine-MP"
