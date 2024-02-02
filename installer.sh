@@ -242,34 +242,28 @@ fi
 if [ "$update" == "on" ]; then
 	echo "[3/3] Skipping PHP recompilation due to user request"
 else
-	echo -n "[3/3] Obtaining PHP: detecting if build is available..."
+	echo -n "[3/3] Obtaining PHP: detecting OS type and arch..."
 	while [ "$forcecompile" == "off" ]
 	do
 		rm -r -f bin/ >> /dev/null 2>&1
+		ARCH="$(uname -m)"
 
 		if [ "$(uname -s)" == "Darwin" ]; then
-			PLATFORM="MacOS-x86_64"
-			echo -n " MacOS PHP build available"
+			PLATFORM="MacOS"
 
 		elif [ "$(uname -s)" == "Linux" ]; then
-			#if [[ "$(cat /etc/redhat-release 2>/dev/null)" == *CentOS* ]]; then
-			#echo -n " CentOS PHP build available, downloading $CENTOS_BUILD.tar.gz..."
-			#download_file "https://dl.bintray.com/pocketmine/PocketMine/$CENTOS_BUILD.tar.gz" | tar -zx > /dev/null 2>&1
-			#else
-
-			#TODO: check architecture (we might not be on an x86_64 system)
-
-			PLATFORM="Linux-x86_64"
-			echo -n " Linux PHP build available"
-
-			#fi
+			PLATFORM="Linux"
 		else
-			echo " no prebuilt PHP download available"
+			echo " unknown OS type!"
 			break
 		fi
 
-		echo -n "... downloading $PHP_VERSION ..."
-		download_file "https://github.com/pmmp/PHP-Binaries/releases/download/php-$PHP_VERSION-latest/PHP-$PLATFORM-PM$PM_VERSION_MAJOR.tar.gz" | tar -zx > /dev/null 2>&1
+		echo -n "... downloading $PHP_VERSION for $PLATFORM $ARCH..."
+		download_file "https://github.com/pmmp/PHP-Binaries/releases/download/php-$PHP_VERSION-latest/PHP-$PLATFORM-$ARCH-PM$PM_VERSION_MAJOR.tar.gz" | tar -zx > /dev/null 2>&1
+		if [ ! -d ./bin ]; then
+			echo " no compatible prebuilt binary found!"
+			break
+		fi
 
 		chmod +x ./bin/php7/bin/*
 		if [ -f ./bin/composer ]; then
