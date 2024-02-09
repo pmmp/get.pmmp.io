@@ -281,7 +281,7 @@ else
 
 		echo -n " checking..."
 
-		if [ "$(./bin/php7/bin/php -r 'echo 1;' 2>/dev/null)" == "1" ]; then
+		if echo "$(./bin/php7/bin/php -r 'echo "pocketmine";' 2>/dev/null)" | grep -q "^pocketmine$"; then
 			echo " done"
 			alldone=yes
 		else
