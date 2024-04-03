@@ -281,7 +281,7 @@ else
 
 		echo -n " checking..."
 
-		if [ "$(./bin/php7/bin/php -r 'echo 1;' 2>/dev/null)" == "1" ]; then
+		if [ "$(./bin/php7/bin/php -ddisplay_errors=stderr -r 'echo 1;' 2>/dev/null)" == "1" ]; then
 			echo " done"
 			alldone=yes
 		else
