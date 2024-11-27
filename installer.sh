@@ -259,7 +259,7 @@ else
 		fi
 
 		echo -n "... downloading $PHP_VERSION for $PLATFORM $ARCH..."
-		download_file "https://github.com/pmmp/PHP-Binaries/releases/download/php-$PHP_VERSION-latest/PHP-$PLATFORM-$ARCH-PM$PM_VERSION_MAJOR.tar.gz" | tar -zx > /dev/null 2>&1
+		download_file "https://github.com/pmmp/PHP-Binaries/releases/download/pm$PM_VERSION_MAJOR-all-latest/PHP-$PHP_VERSION-$PLATFORM-$ARCH-PM$PM_VERSION_MAJOR.tar.gz" | tar -zx > /dev/null 2>&1
 		if [ ! -d ./bin ]; then
 			echo " no compatible prebuilt binary found!"
 			break
