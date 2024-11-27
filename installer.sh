@@ -226,7 +226,7 @@ else
 	download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BASE_VERSION}/LICENSE" > LICENSE
 	download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BASE_VERSION}/README.md" > README.md
 	download_file "https://raw.githubusercontent.com/pmmp/PocketMine-MP/${BASE_VERSION}/CONTRIBUTING.md" > CONTRIBUTING.md
-	download_file "https://raw.githubusercontent.com/pmmp/PHP-Binaries/php/${PHP_VERSION}/compile.sh" > compile.sh
+	download_file "https://raw.githubusercontent.com/pmmp/PHP-Binaries/stable/compile.sh" > compile.sh
 fi
 
 chmod +x compile.sh
@@ -302,7 +302,7 @@ else
 			exec $compile_command
 		else
 			echo "Starting single thread compile"
-			exec "./compile.sh -P $PM_VERSION_MAJOR"
+			exec "./compile.sh -P $PM_VERSION_MAJOR -z $PHP_VERSION"
 		fi
 	fi
 fi
