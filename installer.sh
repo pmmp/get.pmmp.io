@@ -247,41 +247,54 @@ else
 	do
 		rm -r -f bin/ >> /dev/null 2>&1
 		ARCH="$(uname -m)"
+		EXTENSION=".tar.gz"
 
 		if [ "$(uname -s)" == "Darwin" ]; then
 			PLATFORM="MacOS"
 
 		elif [ "$(uname -s)" == "Linux" ]; then
 			PLATFORM="Linux"
+		elif [[ "$(uname -s)" == "MINGW"* ]]; then
+			PLATFORM="Windows"
+			if [ "$ARCH" == "x86_64" ]; then
+				ARCH="x64"
+			fi
 		else
-			echo " unknown OS type!"
+			echo " unknown OS type ($(uname -s))!"
 			break
 		fi
 
 		echo -n "... downloading $PHP_VERSION for $PLATFORM $ARCH..."
-		download_file "https://github.com/pmmp/PHP-Binaries/releases/download/pm$PM_VERSION_MAJOR-php-$PHP_VERSION-latest/PHP-$PHP_VERSION-$PLATFORM-$ARCH-PM$PM_VERSION_MAJOR.tar.gz" | tar -zx > /dev/null 2>&1
-		if [ ! -d ./bin ]; then
+		if [ "$PLATFORM" == "Windows" ]; then
+			download_file "https://github.com/pmmp/PHP-Binaries/releases/download/pm$PM_VERSION_MAJOR-php-$PHP_VERSION-latest/PHP-$PHP_VERSION-$PLATFORM-$ARCH-PM$PM_VERSION_MAJOR.zip" > php.zip
+			unzip -qq -n php.zip > /dev/null
+			rm php.zip
+			php_path=./bin/php
+		else
+			download_file "https://github.com/pmmp/PHP-Binaries/releases/download/pm$PM_VERSION_MAJOR-php-$PHP_VERSION-latest/PHP-$PHP_VERSION-$PLATFORM-$ARCH-PM$PM_VERSION_MAJOR.tar.gz" | tar -zx > /dev/null 2>&1
+			php_path=./bin/php7/bin
+		fi
+		if [ ! -d "$php_path" ]; then
 			echo " no compatible prebuilt binary found!"
 			break
 		fi
 
-		chmod +x ./bin/php7/bin/*
-		if [ -f ./bin/composer ]; then
-			chmod +x ./bin/composer
-		fi
+		chmod +x "$php_path/"*
 
 		echo -n " updating php.ini..."
 
-		sed -i'.bak' "s/date.timezone=.*/date.timezone=$(date +%Z)/" bin/php7/bin/php.ini
+		sed -i'.bak' "s/date.timezone=.*/date.timezone=$(date +%Z)/" "$php_path/php.ini"
 
-		EXTENSION_DIR=$(find "$(pwd)/bin" -name *debug-zts*) #make sure this only captures from `bin` in case the user renamed their old binary folder
-		#Modify extension_dir directive if it exists, otherwise add it
-		LF=$'\n'
-		grep -q '^extension_dir' bin/php7/bin/php.ini && sed -i'bak' "s{^extension_dir=.*{extension_dir=\"$EXTENSION_DIR\"{" bin/php7/bin/php.ini || sed -i'bak' "1s{^{extension_dir=\"$EXTENSION_DIR\"\\$LF{" bin/php7/bin/php.ini
+		if [ "$PLATFORM" != "Windows" ]; then
+			EXTENSION_DIR=$(find "$(pwd)/bin" -name *debug-zts*) #make sure this only captures from `bin` in case the user renamed their old binary folder
+			#Modify extension_dir directive if it exists, otherwise add it
+			LF=$'\n'
+			grep -q '^extension_dir' "$php_path/php.ini" && sed -i'bak' "s{^extension_dir=.*{extension_dir=\"$EXTENSION_DIR\"{" "$php_path/php.ini" || sed -i'bak' "1s{^{extension_dir=\"$EXTENSION_DIR\"\\$LF{" "$php_path/php.ini"
 
+		fi
 		echo -n " checking..."
 
-		if [ "$(./bin/php7/bin/php -ddisplay_errors=stderr -r 'echo 1;' 2>/dev/null)" == "1" ]; then
+		if [ "$("$php_path/php" -ddisplay_errors=stderr -r 'echo 1;' 2>/dev/null)" == "1" ]; then
 			echo " done"
 			alldone=yes
 		else
