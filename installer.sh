@@ -198,6 +198,12 @@ elif [ "$GPG_SIGNATURE" == "" ]; then
 	fi
 fi
 
+if [[ "$TERMUX_VERSION" =~ ^googleplay ]]; then
+	echo -e "\n[!] This is the Termux Google Play version, which cannot run the prebuilt PHP Binaries."
+	echo -e "Try run this script again inside a proot-distro or a custom rootfs."
+	exit 1
+fi
+
 echo "[*] Installing/updating $NAME on directory $INSTALL_DIRECTORY"
 mkdir -m 0777 "$INSTALL_DIRECTORY" 2> /dev/null
 cd "$INSTALL_DIRECTORY"
@@ -254,8 +260,13 @@ else
 
 		elif [ "$(uname -s)" == "Linux" ]; then
 			PLATFORM="Linux"
+			if [ $(uname -o) == "Android" ] || [ -d "/data/data/com.termux/files/" ];  then
+				ARCH="arm64"
+				PLATFORM="Android"
+			fi
 		elif [[ "$(uname -s)" == "MINGW"* ]]; then
 			PLATFORM="Windows"
+			EXTENSION=".zip"
 			if [ "$ARCH" == "x86_64" ]; then
 				ARCH="x64"
 			fi
@@ -264,16 +275,20 @@ else
 			break
 		fi
 
-		echo -n "... downloading $PHP_VERSION for $PLATFORM $ARCH..."
+		ARCHIVE_PHP="PHP-$PHP_VERSION-$PLATFORM-$ARCH-PM$PM_VERSION_MAJOR$EXTENSION"
+		echo -ne "\n[*] Downloading PHP-Binaries to .cache/$ARCHIVE_PHP "
+		mkdir -p .cache
+		download_file "https://github.com/pmmp/PHP-Binaries/releases/download/pm$PM_VERSION_MAJOR-php-$PHP_VERSION-latest/$ARCHIVE_PHP" > .cache/$ARCHIVE_PHP
+		echo -ne "> Extracting... "
 		if [ "$PLATFORM" == "Windows" ]; then
-			download_file "https://github.com/pmmp/PHP-Binaries/releases/download/pm$PM_VERSION_MAJOR-php-$PHP_VERSION-latest/PHP-$PHP_VERSION-$PLATFORM-$ARCH-PM$PM_VERSION_MAJOR.zip" > php.zip
-			unzip -qq -n php.zip > /dev/null
-			rm php.zip
+			unzip -qq -n .cache/$ARCHIVE_PHP > /dev/null
 			php_path=./bin/php
 		else
-			download_file "https://github.com/pmmp/PHP-Binaries/releases/download/pm$PM_VERSION_MAJOR-php-$PHP_VERSION-latest/PHP-$PHP_VERSION-$PLATFORM-$ARCH-PM$PM_VERSION_MAJOR.tar.gz" | tar -zx > /dev/null 2>&1
+			tar -xzf .cache/$ARCHIVE_PHP
 			php_path=./bin/php7/bin
 		fi
+		echo -ne "> Done. \n"
+
 		if [ ! -d "$php_path" ]; then
 			echo " no compatible prebuilt binary found!"
 			break
@@ -281,9 +296,14 @@ else
 
 		chmod +x "$php_path/"*
 
-		echo -n " updating php.ini..."
+		echo -n "[*] Updating php.ini... "
 
 		sed -i'.bak' "s/date.timezone=.*/date.timezone=$(date +%Z)/" "$php_path/php.ini"
+		
+		if [[ -n "$TERMUX_VERSION" ]]; then
+    	sed -i -E "1 s@^#\!(.*)/[sx]?bin/(.*)@#\!/data/data/com.termux/files/usr/bin/\2@" "$php_path/php-config"
+      echo -n "> Termux Fixed Shebang "
+    fi
 
 		if [ "$PLATFORM" != "Windows" ]; then
 			EXTENSION_DIR=$(find "$(pwd)/bin" -name *debug-zts*) #make sure this only captures from `bin` in case the user renamed their old binary folder
@@ -292,13 +312,13 @@ else
 			grep -q '^extension_dir' "$php_path/php.ini" && sed -i'bak' "s{^extension_dir=.*{extension_dir=\"$EXTENSION_DIR\"{" "$php_path/php.ini" || sed -i'bak' "1s{^{extension_dir=\"$EXTENSION_DIR\"\\$LF{" "$php_path/php.ini"
 
 		fi
-		echo -n " checking..."
+		echo -n "> Checking... "
 
 		if [ "$("$php_path/php" -ddisplay_errors=stderr -r 'echo 1;' 2>/dev/null)" == "1" ]; then
-			echo " done"
+			echo -n "> Done. "
 			alldone=yes
 		else
-			echo " downloaded PHP build doesn't work on this platform!"
+			echo "[*] Downloaded PHP build doesn't work on this platform!"
 			rm -rf bin #make sure this doesn't leave a dead binary in case compile.sh fails
 		fi
 
@@ -322,5 +342,5 @@ fi
 
 rm compile.sh
 
-echo "[*] Everything done! Run ./start.sh to start $NAME"
+echo -e "\n[*] Everything done! Run ./start.sh to start $NAME"
 exit 0
