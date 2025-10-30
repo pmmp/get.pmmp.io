@@ -283,7 +283,8 @@ else
 
 		echo -n " updating php.ini..."
 
-		sed -i'.bak' "s/date.timezone=.*/date.timezone=$(date +%Z)/" "$php_path/php.ini"
+		echo "DEBUG: $(readlink /etc/localtime | sed 's|.*zoneinfo/||')"
+		sed -i'.bak' "s|date.timezone=.*|date.timezone=$(readlink /etc/localtime | sed 's|.*zoneinfo/||')|" "$php_path/php.ini"
 
 		if [ "$PLATFORM" != "Windows" ]; then
 			EXTENSION_DIR=$(find "$(pwd)/bin" -name *debug-zts*) #make sure this only captures from `bin` in case the user renamed their old binary folder
