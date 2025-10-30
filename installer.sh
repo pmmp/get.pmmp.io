@@ -283,7 +283,6 @@ else
 
 		echo -n " updating php.ini..."
 
-		echo "DEBUG: $(readlink /etc/localtime | sed 's|.*zoneinfo/||')"
 		sed -i'.bak' "s|date.timezone=.*|date.timezone=$(readlink /etc/localtime | sed 's|.*zoneinfo/||')|" "$php_path/php.ini"
 
 		if [ "$PLATFORM" != "Windows" ]; then
