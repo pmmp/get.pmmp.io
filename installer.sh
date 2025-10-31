@@ -283,7 +283,31 @@ else
 
 		echo -n " updating php.ini..."
 
-		sed -i'.bak' "s/date.timezone=.*/date.timezone=$(date +%Z)/" "$php_path/php.ini"
+		# Detect timezone with multiple fallbacks for better compatibility
+		DETECTED_TIMEZONE=""
+		
+		# Try /etc/localtime symlink
+		if [ -z "$DETECTED_TIMEZONE" ] && [ -L /etc/localtime ]; then
+			DETECTED_TIMEZONE=$(readlink /etc/localtime | sed 's|.*/zoneinfo/||')
+		fi
+		
+		# Method 2: Try /etc/timezone file (Debian/Ubuntu)
+		if [ -z "$DETECTED_TIMEZONE" ] && [ -f /etc/timezone ]; then
+			DETECTED_TIMEZONE=$(cat /etc/timezone)
+		fi
+		
+		# Method 3: Try timedatectl (systemd-based systems)
+		if [ -z "$DETECTED_TIMEZONE" ] && command -v timedatectl > /dev/null 2>&1; then
+			DETECTED_TIMEZONE=$(timedatectl 2>/dev/null | grep "Time zone" | awk '{print $3}')
+		fi
+		
+		# Method 5: Fallback to UTC if nothing worked
+		if [ -z "$DETECTED_TIMEZONE" ]; then
+			DETECTED_TIMEZONE="UTC"
+		fi
+		
+		# Update php.ini with detected timezone
+		sed -i'.bak' "s|date.timezone=.*|date.timezone=$DETECTED_TIMEZONE|" "$php_path/php.ini"
 
 		if [ "$PLATFORM" != "Windows" ]; then
 			EXTENSION_DIR=$(find "$(pwd)/bin" -name *debug-zts*) #make sure this only captures from `bin` in case the user renamed their old binary folder
